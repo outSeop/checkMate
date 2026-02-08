@@ -63,9 +63,9 @@ export async function generateDailyFines(roomId: string, dateStr: string) {
                     // For MVP: Compare HH:mm parts.
 
                     if (log) {
-                        // Parse Check-in Time (User's local time?)
-                        // The log is stored as UTC ISO.
-                        // We need to convert it to the Room's timezone (KST +9).
+                        // Parse Check-in Time (UTC) and convert to KST
+                        // TODO: Use a robust timezone library (e.g. date-fns-tz) for production.
+                        // For now, we manually add 9 hours to the UTC timestamp to simulate KST.
                         const checkInDate = new Date(log.check_in_time)
                         const kstCheckIn = new Date(checkInDate.getTime() + (9 * 60 * 60 * 1000))
                         const checkInHours = kstCheckIn.getUTCHours()
@@ -76,26 +76,36 @@ export async function generateDailyFines(roomId: string, dateStr: string) {
                         const checkInTotal = checkInHours * 60 + checkInMinutes
                         const ruleTotal = ruleHours * 60 + ruleMinutes
 
+                        // Threshold: e.g. 1 minute grace period?
+                        // Currently strict comparison.
                         if (checkInTotal > ruleTotal) {
-                            // LATE!
-                            // Check if fine already exists for this rule/user/date to avoid dupes?
-                            // Skip for now (MVP).
+                            // Check for existing fine to prevent duplicates (Idempotency)
+                            const { data: existingFine } = await supabase
+                                .from('fines')
+                                .select('id')
+                                .eq('user_id', p.user_id)
+                                .eq('rule_id', rule.id)
+                                // Check if created today? Or check if fine is for this specific date?
+                                // Ideally 'fines' should have a 'target_date' column.
+                                // For MVP, we check if a fine was created *today* for this rule.
+                                .gte('created_at', startOfDay)
+                                .lt('created_at', endOfDay)
+                                .maybeSingle()
 
-                            await supabase.from('fines').insert({
-                                room_id: roomId,
-                                user_id: p.user_id,
-                                rule_id: rule.id,
-                                amount: rule.penalty_amount,
-                                status: 'PENDING',
-                                created_at: new Date().toISOString() // Or match the log date
-                            })
-                            finesCreated++
+                            if (!existingFine) {
+                                await supabase.from('fines').insert({
+                                    room_id: roomId,
+                                    user_id: p.user_id,
+                                    rule_id: rule.id,
+                                    amount: rule.penalty_amount,
+                                    status: 'PENDING',
+                                    created_at: new Date().toISOString()
+                                })
+                                finesCreated++
+                            }
                         }
                     } else {
-                        // ABSENT
-                        // If rule handles absent...
-                        // Assume another rule or same rule handles absent? 
-                        // For now, only LATE calculation.
+                        // ABSENT handling (Future implementation)
                     }
                 }
             }
