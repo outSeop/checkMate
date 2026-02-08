@@ -19,6 +19,7 @@ export default async function RoomDetailPage({
     params: Promise<{ id: string }>
     searchParams: Promise<{ tab?: string }>
 }) {
+    const { id } = await params
     const { data, error } = await getRoomDetails(id)
 
     if (error || !data || !data.room) {
@@ -35,6 +36,9 @@ export default async function RoomDetailPage({
         rules,
         fines
     } = data
+
+    const isOwner = membership?.role === 'OWNER'
+    const isMember = !!membership
 
     // Tabs Logic
     const tab = (await searchParams).tab || 'home'

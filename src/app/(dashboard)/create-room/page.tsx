@@ -3,6 +3,7 @@
 
 import { useActionState } from 'react'
 import { createRoom } from '@/app/actions/room'
+import RuleBuilder from '@/components/create-room/RuleBuilder'
 import styles from './CreateRoom.module.css'
 
 const initialState = {

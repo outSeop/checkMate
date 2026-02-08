@@ -50,10 +50,20 @@ export async function generateDailyFinesService(roomId: string, dateStr: string)
 
     // 4. Iterate and Apply Rules
     for (const p of participants) {
-        const log = logsMap.get(p.user_id)
+        // Collect all logs for this user
+        const userLogs = logs?.filter(l => l.user_id === p.user_id) || []
+
+        // Calculate Total Duration
+        // duration_seconds might be null if strictly typed, so handle default 0
+        const dailyDuration = userLogs.reduce((acc, l) => acc + (l.duration_seconds || 0), 0)
+
+        // Find the First Check-in Log (for Lateness check)
+        const firstLog = userLogs.length > 0
+            ? userLogs.sort((a, b) => new Date(a.check_in_time).getTime() - new Date(b.check_in_time).getTime())[0]
+            : undefined
 
         for (const rule of rules) {
-            const fineToCreate = await evaluateRule(rule, log, p.user_id, startOfDay, endOfDay)
+            const fineToCreate = await evaluateRule(rule, firstLog, p.user_id, startOfDay, endOfDay, dailyDuration)
 
             if (fineToCreate) {
                 // Check Idempotency
@@ -84,13 +94,30 @@ export async function generateDailyFinesService(roomId: string, dateStr: string)
     return { success: true, finesCreated }
 }
 
-async function evaluateRule(rule: Rule, log: AttendanceLog | undefined, userId: string, startOfDay: string, endOfDay: string): Promise<boolean> {
+async function evaluateRule(rule: Rule, log: AttendanceLog | undefined, userId: string, startOfDay: string, endOfDay: string, dailyDuration: number = 0): Promise<boolean> {
     switch (rule.type) {
         case 'ATTENDANCE':
             return evaluateAttendanceRule(rule, log)
+        case 'GOAL':
+            return evaluateGoalRule(rule, dailyDuration)
         default:
             return false
     }
+}
+
+function evaluateGoalRule(rule: Rule, dailyDurationSeconds: number): boolean {
+    const condition = rule.condition_json
+
+    if (condition.subtype === 'DURATION') {
+        // min_hours to seconds
+        const minSeconds = (condition.min_hours || 0) * 3600
+
+        // If duration is less than minimum, FINE!
+        if (dailyDurationSeconds < minSeconds) {
+            return true
+        }
+    }
+    return false
 }
 
 function evaluateAttendanceRule(rule: Rule, log: AttendanceLog | undefined): boolean {

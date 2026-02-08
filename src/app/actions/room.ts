@@ -65,6 +65,31 @@ export async function createRoom(prevState: any, formData: FormData) {
         return { message: '참여자 등록 중 오류가 발생했습니다.' }
     }
 
+    // 5. Insert Rules (if any)
+    const rulesJson = formData.get('rulesJson') as string
+    if (rulesJson) {
+        try {
+            const rules = JSON.parse(rulesJson) as any[]
+            if (rules.length > 0) {
+                const rulesToInsert = rules.map(r => ({
+                    room_id: room.id,
+                    type: r.type,
+                    condition_json: { subtype: r.subtype, time: r.subtype === 'LATE' ? r.value : undefined, min_hours: r.subtype === 'DURATION' ? r.value : undefined },
+                    penalty_amount: r.penalty,
+                    description: r.description
+                }))
+
+                const { error: ruleError } = await supabase.from('rules').insert(rulesToInsert)
+                if (ruleError) {
+                    console.error('Rule Insertion Error:', ruleError)
+                    // Non-fatal, but good to know
+                }
+            }
+        } catch (e) {
+            console.error('Rule Parsing Error:', e)
+        }
+    }
+
     // 5. Redirect to Room
     redirect(`/room/${room.id}`)
 }
