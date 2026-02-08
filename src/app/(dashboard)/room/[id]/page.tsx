@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getRoomDetails } from '@/services/roomService'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Calendar, User, Settings, Share2, LogOut } from 'lucide-react'
@@ -18,76 +19,22 @@ export default async function RoomDetailPage({
     params: Promise<{ id: string }>
     searchParams: Promise<{ tab?: string }>
 }) {
-    const { id } = await params
-    const supabase = await createClient()
+    const { data, error } = await getRoomDetails(id)
 
-    // 1. Fetch Room Data & Current User
-    const [
-        { data: { user } },
-        { data: room, error: roomError },
-    ] = await Promise.all([
-        supabase.auth.getUser(),
-        supabase.from('rooms').select('*').eq('id', id).single(),
-    ])
-
-    if (roomError || !room) {
+    if (error || !data || !data.room) {
         notFound()
     }
 
-    // 2. Check Membership & Active Session
-    let membership = null
-    let activeSession = null
-    let todayTotalSeconds = 0
-
-    if (user) {
-        const { data: participant } = await supabase
-            .from('room_participants')
-            .select('*')
-            .eq('room_id', id)
-            .eq('user_id', user.id)
-            .single()
-        membership = participant
-
-        // Fetch active session (check_out_time is null)
-        const { data: session } = await supabase
-            .from('attendance_logs')
-            .select('*')
-            .eq('room_id', id)
-            .eq('user_id', user.id)
-            .is('check_out_time', null)
-            .maybeSingle()
-
-        activeSession = session
-
-        // Fetch today's total study time
-        const todayStart = new Date()
-        todayStart.setHours(0, 0, 0, 0)
-
-        const { data: logs } = await supabase
-            .from('attendance_logs')
-            .select('duration_seconds')
-            .eq('room_id', id)
-            .eq('user_id', user.id)
-            .gte('check_in_time', todayStart.toISOString())
-
-        if (logs) {
-            todayTotalSeconds = logs.reduce((acc, log) => acc + (log.duration_seconds || 0), 0)
-        }
-    }
-
-    const isOwner = membership?.role === 'OWNER'
-    const isMember = !!membership
-
-    // 4. Fetch Tab Data (Parallel)
-    const [
-        { data: participants },
-        { data: rules },
-        { data: fines }
-    ] = await Promise.all([
-        supabase.from('room_participants').select('*, users(username, profile_image_url)').eq('room_id', id),
-        supabase.from('rules').select('*').eq('room_id', id),
-        supabase.from('fines').select('*, users(username), rules(description)').eq('room_id', id)
-    ])
+    const {
+        room,
+        user,
+        membership,
+        activeSession,
+        todayTotalSeconds,
+        participants,
+        rules,
+        fines
+    } = data
 
     // Tabs Logic
     const tab = (await searchParams).tab || 'home'
