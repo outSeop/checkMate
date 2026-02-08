@@ -1,0 +1,76 @@
+'use client'
+
+import { AlertCircle, CheckCircle2 } from 'lucide-react'
+
+interface Fine {
+    id: string
+    amount: number
+    status: 'PENDING' | 'CONFIRMED' | 'DISPUTED' | 'PAID'
+    created_at: string
+}
+
+export default function MyFineStatus({ fines }: { fines: Fine[] }) {
+    // Filter pertinent fines (Pending or Disputed)
+    const unpaidFines = fines.filter(f => f.status === 'PENDING' || f.status === 'DISPUTED')
+    const totalUnpaid = unpaidFines.reduce((acc, f) => acc + f.amount, 0)
+
+    if (totalUnpaid === 0) {
+        return (
+            <div style={{
+                padding: '1.5rem',
+                backgroundColor: 'var(--card)',
+                borderRadius: 'var(--radius)',
+                border: '1px solid var(--border)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem'
+            }}>
+                <div style={{
+                    width: '40px', height: '40px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                    <CheckCircle2 size={24} className="text-green-500" />
+                </div>
+                <div>
+                    <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.2rem' }}>납부할 벌금이 없습니다</h3>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>훌륭합니다! 규칙을 잘 지키고 계시네요.</p>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div style={{
+            padding: '1.5rem',
+            backgroundColor: 'rgba(239, 68, 68, 0.05)', // Subtle red tint
+            borderRadius: 'var(--radius)',
+            border: '1px solid var(--destructive)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem'
+        }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{
+                    width: '40px', height: '40px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                    <AlertCircle size={24} className="text-red-500" />
+                </div>
+                <div>
+                    <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.2rem', color: 'var(--destructive)' }}>
+                        미납 벌금: {totalUnpaid.toLocaleString()}원
+                    </h3>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>
+                        {unpaidFines.length}건의 미납 내역이 있습니다.
+                    </p>
+                </div>
+            </div>
+            {/* Direct Link to Fines Tab or Pay Button could go here */}
+        </div>
+    )
+}

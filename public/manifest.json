@@ -1,0 +1,16 @@
+{
+    "name": "Study App",
+    "short_name": "Study",
+    "description": "Mobile-first study management platform",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#1e1b4b",
+    "icons": [
+        {
+            "src": "/favicon.ico",
+            "sizes": "64x64 32x32 24x24 16x16",
+            "type": "image/x-icon"
+        }
+    ]
+}
