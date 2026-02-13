@@ -7,12 +7,28 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
 
+import NotificationBell from '@/components/common/NotificationBell'
+
 export function Shell({ children, user }: { children: React.ReactNode, user: User | null }) {
     return (
         <div className={styles.shell}>
+            {/* Mobile Header: Visible only on mobile */}
+            <header className={styles.mobileHeader}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Study App</div>
+                {user && <NotificationBell userId={user.id} />}
+            </header>
+
             <aside className={styles.sidebar}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '2rem' }}>
-                    Study App
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '2rem'
+                }}>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
+                        Study App
+                    </div>
+                    {user && <NotificationBell userId={user.id} />}
                 </div>
                 <NavLinks user={user} />
             </aside>

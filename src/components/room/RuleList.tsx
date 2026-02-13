@@ -5,6 +5,12 @@ interface Rule {
     type: string
     description: string | null
     penalty_amount: number
+    condition_json?: {
+        subtype: string
+        min_hours?: number
+        count?: number
+        interval?: string
+    }
 }
 
 export default function RuleList({ rules }: { rules: Rule[] }) {
@@ -25,33 +31,73 @@ export default function RuleList({ rules }: { rules: Rule[] }) {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {rules.map((rule) => (
-                <div key={rule.id} style={{
-                    padding: '1.5rem',
-                    backgroundColor: 'var(--card)',
-                    borderRadius: 'var(--radius)',
-                    border: '1px solid var(--border)'
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                        <span style={{
-                            fontSize: '0.875rem',
-                            fontWeight: '600',
-                            color: 'var(--primary)',
-                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                            padding: '0.25rem 0.75rem',
-                            borderRadius: '99px'
-                        }}>
-                            {rule.type}
-                        </span>
-                        <span style={{ fontWeight: 'bold' }}>
-                            {rule.penalty_amount.toLocaleString()}원
-                        </span>
+            {rules.map((rule) => {
+                const condition = (rule.condition_json || {}) as {
+                    subtype?: string
+                    min_hours?: number
+                    count?: number
+                }
+                const isWeeklyGoal = condition.subtype === 'WEEKLY'
+                const dailyHours = condition.min_hours
+                const weeklyCount = condition.count
+
+                return (
+                    <div key={rule.id} style={{
+                        padding: '1.5rem',
+                        backgroundColor: 'var(--card)',
+                        borderRadius: 'var(--radius)',
+                        border: '1px solid var(--border)'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                            <div>
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.25rem' }}>
+                                    {isWeeklyGoal ? '주간 목표 달성' : '스터디 규칙'}
+                                </h3>
+                                <p style={{ fontSize: '0.9rem', color: 'var(--muted-foreground)' }}>
+                                    {rule.description}
+                                </p>
+                            </div>
+                            <div style={{
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                color: 'var(--destructive)',
+                                padding: '0.5rem 1rem',
+                                borderRadius: 'var(--radius)',
+                                fontWeight: 'bold',
+                                fontSize: '0.9rem',
+                                textAlign: 'right'
+                            }}>
+                                <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'normal', marginBottom: '0.1rem' }}>미달성 1회당</span>
+                                {rule.penalty_amount.toLocaleString()}원
+                            </div>
+                        </div>
+
+                        {/* Detail Grid */}
+                        {isWeeklyGoal && (
+                            <div style={{
+                                display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem',
+                                paddingTop: '1rem', borderTop: '1px solid var(--border)'
+                            }}>
+                                <div>
+                                    <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>
+                                        하루 최소 공부
+                                    </span>
+                                    <span style={{ fontSize: '1.2rem', fontWeight: '600' }}>
+                                        {dailyHours ? `${dailyHours}시간` : '-'}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>
+                                        주간 목표 횟수
+                                    </span>
+                                    <span style={{ fontSize: '1.2rem', fontWeight: '600' }}>
+                                        {weeklyCount ? `주 ${weeklyCount}회` : '-'}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                    <p style={{ color: 'var(--foreground)' }}>
-                        {rule.description || '규칙 설명이 없습니다.'}
-                    </p>
-                </div>
-            ))}
+                )
+            })}
         </div>
     )
 }

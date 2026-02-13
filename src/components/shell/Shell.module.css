@@ -74,12 +74,35 @@
   font-weight: 600;
 }
 
+/* Mobile Header */
+.mobileHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
 /* Desktop Styles */
 @media (min-width: 768px) {
+  .mobileHeader {
+    display: none;
+  }
+
   .sidebar {
     display: flex;
     /* Show sidebar on desktop */
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
   }
+
+  /* ... rest unchanged */
 
   .mobileNav {
     display: none;

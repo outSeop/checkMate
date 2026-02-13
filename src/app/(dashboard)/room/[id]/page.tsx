@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getRoomDetails } from '@/services/roomService'
+import { checkAndRunWeeklySettlement } from '@/services/fineService' // Automation
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Calendar, User, Settings, Share2, LogOut } from 'lucide-react'
@@ -11,6 +12,7 @@ import MyFineStatus from '@/components/room/MyFineStatus'
 import FineList from '@/components/room/FineList'
 import JoinButton from '@/components/room/JoinButton'
 import AdminFineControls from '@/components/room/AdminFineControls'
+import RoomNotice from '@/components/room/RoomNotice'
 
 export default async function RoomDetailPage({
     params,
@@ -20,6 +22,10 @@ export default async function RoomDetailPage({
     searchParams: Promise<{ tab?: string }>
 }) {
     const { id } = await params
+
+    // Automation: Check and run weekly settlement (Fire & Forget)
+    checkAndRunWeeklySettlement(id).catch(err => console.error(err))
+
     const { data, error } = await getRoomDetails(id)
 
     if (error || !data || !data.room) {
@@ -114,21 +120,11 @@ export default async function RoomDetailPage({
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         {/* Fine Status Card (Only for members) */}
                         {isMember && fines && (
-                            <MyFineStatus fines={fines.filter((f: any) => f.user_id === user?.id)} />
+                            <MyFineStatus fines={fines.filter((f: any) => f.user_id === user?.id)} roomId={id} />
                         )}
 
-                        <div style={{
-                            padding: '2rem',
-                            textAlign: 'center',
-                            color: 'var(--muted-foreground)',
-                            backgroundColor: 'var(--card)',
-                            borderRadius: 'var(--radius-lg)',
-                            border: '1px solid var(--border)'
-                        }}>
-                            <p>📢 공지사항</p>
-                            <br />
-                            <p>아직 등록된 공지사항이 없습니다.</p>
-                        </div>
+                        {/* Notice Section */}
+                        <RoomNotice roomId={id} notice={room.notice} isOwner={isOwner} />
 
                         {isOwner && <AdminFineControls roomId={id} />}
                     </div>
@@ -143,7 +139,7 @@ export default async function RoomDetailPage({
                 )}
 
                 {tab === 'fines' && (
-                    <FineList fines={fines || []} currentUserId={user?.id || ''} />
+                    <FineList fines={fines || []} currentUserId={user?.id || ''} isOwner={isOwner} roomId={room.id} />
                 )}
             </main>
         </div>

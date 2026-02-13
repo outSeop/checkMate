@@ -74,7 +74,13 @@ export async function createRoom(prevState: any, formData: FormData) {
                 const rulesToInsert = rules.map(r => ({
                     room_id: room.id,
                     type: r.type,
-                    condition_json: { subtype: r.subtype, time: r.subtype === 'LATE' ? r.value : undefined, min_hours: r.subtype === 'DURATION' ? r.value : undefined },
+                    condition_json: {
+                        subtype: r.subtype,
+                        // min_hours is used for DURATION subtype OR as a condition for WEEKLY subtype
+                        min_hours: r.subtype === 'DURATION' ? r.value : (r.dailyTarget || undefined),
+                        interval: r.subtype === 'WEEKLY' ? 'WEEK' : undefined,
+                        count: r.subtype === 'WEEKLY' ? r.value : undefined
+                    },
                     penalty_amount: r.penalty,
                     description: r.description
                 }))
@@ -131,6 +137,52 @@ export async function joinRoom(roomId: string) {
     }
 
     // 4. Revalidate
+    revalidatePath(`/room/${roomId}`)
+    return { success: true }
+}
+
+export async function updateRoomNotice(roomId: string, notice: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { message: '로그인이 필요합니다.' }
+    }
+
+    const { error } = await supabase
+        .from('rooms')
+        .update({ notice })
+        .eq('id', roomId)
+        .eq('owner_id', user.id)
+
+    if (error) {
+        console.error('Update Notice Error:', error)
+        return { message: '공지사항 수정 중 오류가 발생했습니다.' }
+    }
+
+    revalidatePath(`/room/${roomId}`)
+    return { success: true }
+}
+
+export async function updateRoomSettings(roomId: string, settlementDay: number) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { message: '로그인이 필요합니다.' }
+    }
+
+    const { error } = await supabase
+        .from('rooms')
+        .update({ settlement_day: settlementDay })
+        .eq('id', roomId)
+        .eq('owner_id', user.id)
+
+    if (error) {
+        console.error('Update Settings Error:', error)
+        return { message: '설정 수정 중 오류가 발생했습니다.' }
+    }
+
     revalidatePath(`/room/${roomId}`)
     return { success: true }
 }

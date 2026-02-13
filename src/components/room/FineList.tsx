@@ -1,13 +1,14 @@
 'use client'
 
 import { Check, Clock, AlertCircle } from 'lucide-react'
+import { markAsPaidAction, confirmPaymentAction } from '@/app/actions/fines'
 
 interface Fine {
     id: string
     amount: number
     status: 'PENDING' | 'CONFIRMED' | 'DISPUTED' | 'PAID'
     created_at: string
-    reason?: string // Assuming we might add this later or join with rules
+    reason?: string
     user_id: string
     users?: {
         username: string | null
@@ -19,12 +20,12 @@ interface Fine {
 
 const statusConfig = {
     'PENDING': { label: '미납', color: 'var(--destructive)', icon: AlertCircle },
-    'PAID': { label: '확인 대기', color: 'var(--secondary)', icon: Clock }, // User said paid, waiting owner
+    'PAID': { label: '확인 대기', color: 'var(--secondary)', icon: Clock },
     'CONFIRMED': { label: '납부 완료', color: 'var(--primary)', icon: Check },
     'DISPUTED': { label: '이의 제기', color: 'var(--warning)', icon: AlertCircle },
 }
 
-export default function FineList({ fines, currentUserId }: { fines: Fine[], currentUserId: string }) {
+export default function FineList({ fines, currentUserId, isOwner, roomId }: { fines: Fine[], currentUserId: string, isOwner: boolean, roomId: string }) {
     if (fines.length === 0) {
         return (
             <div style={{
@@ -38,6 +39,18 @@ export default function FineList({ fines, currentUserId }: { fines: Fine[], curr
                 <p>벌금 내역이 없습니다.</p>
             </div>
         )
+    }
+
+    const handleMarkAsPaid = async (fineId: string) => {
+        if (!confirm('벌금을 납부하셨습니까?')) return
+        const result = await markAsPaidAction(fineId, roomId)
+        if (!result.success) alert(result.message)
+    }
+
+    const handleConfirm = async (fineId: string) => {
+        if (!confirm('납부를 확인하시겠습니까?')) return
+        const result = await confirmPaymentAction(fineId, roomId)
+        if (!result.success) alert(result.message)
     }
 
     // Sort by Date DESC
@@ -63,12 +76,10 @@ export default function FineList({ fines, currentUserId }: { fines: Fine[], curr
                         <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
                                 <span style={{ fontWeight: '600', fontSize: '1rem' }}>
-                                    {fine.rules?.description || '기타 벌금'}
+                                    {fine.rules?.description || fine.reason || '기타 벌금'}
                                 </span>
                                 <span style={{
-                                    fontSize: '0.75rem',
-                                    padding: '0.1rem 0.4rem',
-                                    borderRadius: '99px',
+                                    fontSize: '0.75rem', padding: '0.1rem 0.4rem', borderRadius: '99px',
                                     backgroundColor: isMyFine ? 'rgba(99, 102, 241, 0.1)' : 'var(--muted)',
                                     color: isMyFine ? 'var(--primary)' : 'var(--muted-foreground)'
                                 }}>
@@ -84,16 +95,43 @@ export default function FineList({ fines, currentUserId }: { fines: Fine[], curr
                             <div style={{ fontWeight: 'bold', fontSize: '1rem', marginBottom: '0.25rem' }}>
                                 {fine.amount.toLocaleString()}원
                             </div>
-                            <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.25rem',
-                                fontSize: '0.875rem',
-                                color: config.color,
-                                justifySelf: 'end'
-                            }}>
-                                <Icon size={14} />
-                                <span>{config.label}</span>
+
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                                {/* Status Icon/Label */}
+                                <div style={{
+                                    display: 'flex', alignItems: 'center', gap: '0.25rem',
+                                    fontSize: '0.875rem', color: config.color
+                                }}>
+                                    <Icon size={14} />
+                                    <span>{config.label}</span>
+                                </div>
+
+                                {/* Action Buttons */}
+                                {fine.status === 'PENDING' && isMyFine && (
+                                    <button
+                                        onClick={() => handleMarkAsPaid(fine.id)}
+                                        style={{
+                                            fontSize: '0.75rem', padding: '0.25rem 0.5rem',
+                                            backgroundColor: 'var(--secondary)', color: 'var(--secondary-foreground)',
+                                            border: 'none', borderRadius: '4px', cursor: 'pointer', marginLeft: '0.5rem'
+                                        }}
+                                    >
+                                        납부 완료
+                                    </button>
+                                )}
+
+                                {fine.status === 'PAID' && isOwner && (
+                                    <button
+                                        onClick={() => handleConfirm(fine.id)}
+                                        style={{
+                                            fontSize: '0.75rem', padding: '0.25rem 0.5rem',
+                                            backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)',
+                                            border: 'none', borderRadius: '4px', cursor: 'pointer', marginLeft: '0.5rem'
+                                        }}
+                                    >
+                                        승인
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>

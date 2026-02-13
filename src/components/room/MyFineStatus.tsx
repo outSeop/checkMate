@@ -2,6 +2,9 @@
 
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
 
+import VacationRequestButton from './VacationRequestButton'
+import ManualFineButton from './ManualFineButton'
+
 interface Fine {
     id: string
     amount: number
@@ -9,10 +12,17 @@ interface Fine {
     created_at: string
 }
 
-export default function MyFineStatus({ fines }: { fines: Fine[] }) {
+export default function MyFineStatus({ fines, roomId }: { fines: Fine[], roomId: string }) {
     // Filter pertinent fines (Pending or Disputed)
     const unpaidFines = fines.filter(f => f.status === 'PENDING' || f.status === 'DISPUTED')
     const totalUnpaid = unpaidFines.reduce((acc, f) => acc + f.amount, 0)
+
+    const ActionButtons = () => (
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <ManualFineButton roomId={roomId} />
+            <VacationRequestButton roomId={roomId} />
+        </div>
+    )
 
     if (totalUnpaid === 0) {
         return (
@@ -23,20 +33,25 @@ export default function MyFineStatus({ fines }: { fines: Fine[] }) {
                 border: '1px solid var(--border)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '1rem'
+                justifyContent: 'space-between',
+                gap: '1rem',
+                flexWrap: 'wrap'
             }}>
-                <div style={{
-                    width: '40px', height: '40px',
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>
-                    <CheckCircle2 size={24} className="text-green-500" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{
+                        width: '40px', height: '40px',
+                        borderRadius: '50%',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center' // Removed 'flex-shrink-0' if not needed, added later if layout breaks
+                    }}>
+                        <CheckCircle2 size={24} className="text-green-500" />
+                    </div>
+                    <div>
+                        <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.2rem' }}>납부할 벌금이 없습니다</h3>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>훌륭합니다! 규칙을 잘 지키고 계시네요.</p>
+                    </div>
                 </div>
-                <div>
-                    <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.2rem' }}>납부할 벌금이 없습니다</h3>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>훌륭합니다! 규칙을 잘 지키고 계시네요.</p>
-                </div>
+                <ActionButtons />
             </div>
         )
     }
@@ -50,7 +65,8 @@ export default function MyFineStatus({ fines }: { fines: Fine[] }) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: '1rem'
+            gap: '1rem',
+            flexWrap: 'wrap'
         }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <div style={{
@@ -70,7 +86,7 @@ export default function MyFineStatus({ fines }: { fines: Fine[] }) {
                     </p>
                 </div>
             </div>
-            {/* Direct Link to Fines Tab or Pay Button could go here */}
+            <ActionButtons />
         </div>
     )
 }

@@ -1,173 +1,172 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, Clock, Hourglass } from 'lucide-react'
 
 export interface RuleConfig {
     id: string
-    type: 'ATTENDANCE' | 'GOAL'
-    subtype: 'LATE' | 'DURATION'
-    value: string | number // "09:00" or 3
+    type: 'GOAL'
+    subtype: 'DURATION' | 'WEEKLY'
+    value: number
     penalty: number
     description: string
 }
 
 export default function RuleBuilder({ onRulesChange }: { onRulesChange: (rules: RuleConfig[]) => void }) {
-    const [rules, setRules] = useState<RuleConfig[]>([])
+    // Single Activation State
+    const [isActive, setIsActive] = useState(true)
+
+    // Unififed Helper States
+    const [dailyHours, setDailyHours] = useState(3)
+    const [weeklyDays, setWeeklyDays] = useState(5)
+    // Single Fine Amount (Integrated)
+    const [penalty, setPenalty] = useState(1000)
 
     useEffect(() => {
-        onRulesChange(rules)
-    }, [rules, onRulesChange])
+        const rules: RuleConfig[] = []
 
-    const addRule = (subtype: 'LATE' | 'DURATION') => {
-        const newRule: RuleConfig = {
-            id: Math.random().toString(36).substr(2, 9),
-            type: subtype === 'LATE' ? 'ATTENDANCE' : 'GOAL',
-            subtype,
-            value: subtype === 'LATE' ? '09:00' : 1,
-            penalty: 1000,
-            description: subtype === 'LATE' ? '지각 (9시 이후)' : '일일 최소 1시간 공부'
+        if (isActive) {
+            // 1. Daily Rule
+            rules.push({
+                id: 'daily-rule',
+                type: 'GOAL',
+                subtype: 'DURATION',
+                value: dailyHours,
+                penalty: penalty,
+                description: `일일 ${dailyHours}시간 이상 공부`
+            })
+
+            // 2. Weekly Rule
+            rules.push({
+                id: 'weekly-rule',
+                type: 'GOAL',
+                subtype: 'WEEKLY',
+                value: weeklyDays,
+                penalty: penalty,
+                description: `주 ${weeklyDays}회 이상 출석`
+            })
         }
-        setRules([...rules, newRule])
-    }
 
-    const removeRule = (id: string) => {
-        setRules(rules.filter(r => r.id !== id))
-    }
-
-    const updateRule = (id: string, field: keyof RuleConfig, value: any) => {
-        setRules(rules.map(r => {
-            if (r.id === id) {
-                const updated = { ...r, [field]: value }
-                // Update description automatically for convenience
-                if (field === 'value' || field === 'penalty') {
-                    if (updated.subtype === 'LATE') {
-                        updated.description = `지각 (${updated.value} 이후)`
-                    } else if (updated.subtype === 'DURATION') {
-                        updated.description = `일일 최소 ${updated.value}시간 공부`
-                    }
-                }
-                return updated
-            }
-            return r
-        }))
-    }
+        onRulesChange(rules)
+    }, [isActive, dailyHours, weeklyDays, penalty, onRulesChange])
 
     return (
-        <div style={{ marginTop: '1.5rem' }}>
-            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+        <div style={{ marginTop: '2rem' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
                 스터디 규칙 설정
-            </label>
+            </h3>
+            <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginBottom: '1rem' }}>
+                스터디원들이 지켜야 할 인증 목표입니다.
+            </p>
 
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                <button
-                    type="button"
-                    onClick={() => addRule('LATE')}
-                    style={{
-                        padding: '0.5rem 0.75rem',
-                        fontSize: '0.875rem',
-                        backgroundColor: 'var(--card)',
-                        border: '1px solid var(--border)',
-                        borderRadius: 'var(--radius)',
-                        display: 'flex', alignItems: 'center', gap: '0.5rem',
-                        cursor: 'pointer'
-                    }}
-                >
-                    <Clock size={16} />
-                    지각 규칙 추가
-                </button>
-                <button
-                    type="button"
-                    onClick={() => addRule('DURATION')}
-                    style={{
-                        padding: '0.5rem 0.75rem',
-                        fontSize: '0.875rem',
-                        backgroundColor: 'var(--card)',
-                        border: '1px solid var(--border)',
-                        borderRadius: 'var(--radius)',
-                        display: 'flex', alignItems: 'center', gap: '0.5rem',
-                        cursor: 'pointer'
-                    }}
-                >
-                    <Hourglass size={16} />
-                    최소 시간 규칙 추가
-                </button>
-            </div>
+            <div style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius)',
+                padding: '1.5rem',
+                backgroundColor: isActive ? 'var(--card)' : 'var(--background)',
+                opacity: isActive ? 1 : 0.7,
+                transition: 'all 0.2s'
+            }}>
+                {/* Main Toggle */}
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: isActive ? '1.5rem' : 0 }}>
+                    <input
+                        type="checkbox"
+                        checked={isActive}
+                        onChange={(e) => setIsActive(e.target.checked)}
+                        id="activateRules"
+                        style={{ marginRight: '0.75rem', width: '1.2rem', height: '1.2rem', cursor: 'pointer', accentColor: 'var(--primary)' }}
+                    />
+                    <label htmlFor="activateRules" style={{ fontWeight: '600', fontSize: '1rem', cursor: 'pointer', flex: 1 }}>
+                        목표 및 벌금 설정하기
+                    </label>
+                </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {rules.map((rule) => (
-                    <div key={rule.id} style={{
-                        padding: '1rem',
-                        backgroundColor: 'var(--card)',
-                        border: '1px solid var(--border)',
-                        borderRadius: 'var(--radius)',
-                        display: 'flex', flexDirection: 'column', gap: '0.75rem'
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontWeight: '600', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                {rule.subtype === 'LATE' ? <Clock size={16} /> : <Hourglass size={16} />}
-                                {rule.subtype === 'LATE' ? '지각 체크' : '최소 공부 시간'}
-                            </span>
-                            <button
-                                type="button"
-                                onClick={() => removeRule(rule.id)}
-                                style={{ color: 'var(--destructive)', background: 'none', border: 'none', cursor: 'pointer' }}
-                            >
-                                <Trash2 size={16} />
-                            </button>
-                        </div>
+                {isActive && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingLeft: '0.5rem' }}>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1.5rem' }}>
+                            {/* Daily Input */}
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.3rem' }}>
-                                    {rule.subtype === 'LATE' ? '기준 시간' : '시간 (시간 단위)'}
+                                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted-foreground)', marginBottom: '0.5rem' }}>
+                                    하루 최소 공부 시간
                                 </label>
-                                {rule.subtype === 'LATE' ? (
-                                    <input
-                                        type="time"
-                                        value={rule.value}
-                                        onChange={(e) => updateRule(rule.id, 'value', e.target.value)}
-                                        style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}
-                                    />
-                                ) : (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <input
                                         type="number"
                                         min="1" max="24"
-                                        value={rule.value}
-                                        onChange={(e) => updateRule(rule.id, 'value', Number(e.target.value))}
-                                        style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}
+                                        value={dailyHours}
+                                        onChange={(e) => setDailyHours(Number(e.target.value))}
+                                        style={{
+                                            width: '100%', padding: '0.75rem',
+                                            borderRadius: 'var(--radius)', border: '1px solid var(--border)',
+                                            backgroundColor: 'var(--background)', fontSize: '1rem'
+                                        }}
                                     />
-                                )}
+                                    <span style={{ fontSize: '0.875rem', whiteSpace: 'nowrap' }}>시간</span>
+                                </div>
                             </div>
+
+                            {/* Weekly Input */}
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.3rem' }}>
-                                    벌금 (원)
+                                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted-foreground)', marginBottom: '0.5rem' }}>
+                                    주간 최소 출석 일수
                                 </label>
-                                <input
-                                    type="number"
-                                    step="100" min="0"
-                                    value={rule.penalty}
-                                    onChange={(e) => updateRule(rule.id, 'penalty', Number(e.target.value))}
-                                    style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}
-                                />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <input
+                                        type="number"
+                                        min="1" max="7"
+                                        value={weeklyDays}
+                                        onChange={(e) => setWeeklyDays(Number(e.target.value))}
+                                        style={{
+                                            width: '100%', padding: '0.75rem',
+                                            borderRadius: 'var(--radius)', border: '1px solid var(--border)',
+                                            backgroundColor: 'var(--background)', fontSize: '1rem'
+                                        }}
+                                    />
+                                    <span style={{ fontSize: '0.875rem', whiteSpace: 'nowrap' }}>일</span>
+                                </div>
+                            </div>
+
+                            {/* Fine Input - integrated */}
+                            <div style={{ gridColumn: '1 / -1' }}>
+                                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted-foreground)', marginBottom: '0.5rem' }}>
+                                    목표 미달성 시 벌금
+                                </label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <input
+                                        type="number"
+                                        step="100" min="0"
+                                        value={penalty}
+                                        onChange={(e) => setPenalty(Number(e.target.value))}
+                                        style={{
+                                            width: '100%', padding: '0.75rem',
+                                            borderRadius: 'var(--radius)', border: '1px solid var(--border)',
+                                            backgroundColor: 'var(--background)', fontSize: '1rem'
+                                        }}
+                                    />
+                                    <span style={{ fontSize: '0.875rem', whiteSpace: 'nowrap' }}>원</span>
+                                </div>
+                                <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>
+                                    * 하루 {dailyHours}시간 이상 공부한 날이 주 {weeklyDays}회 미만일 경우, {penalty.toLocaleString()}원의 벌금이 부과됩니다.
+                                </p>
                             </div>
                         </div>
-                    </div>
-                ))}
 
-                {rules.length === 0 && (
-                    <div style={{
-                        textAlign: 'center', padding: '1.5rem',
-                        color: 'var(--muted-foreground)', fontSize: '0.875rem',
-                        border: '1px dashed var(--border)', borderRadius: 'var(--radius)'
-                    }}>
-                        규칙을 추가하여 자동 벌금 시스템을 활용해보세요.
                     </div>
                 )}
             </div>
 
-            {/* Hidden Input to pass stringified rules to Server Action */}
-            <input type="hidden" name="rulesJson" value={JSON.stringify(rules)} />
+            {/* Hidden Input for Server Action */}
+            <input type="hidden" name="rulesJson" value={JSON.stringify(isActive ? [
+                {
+                    id: 'integrated',
+                    type: 'GOAL',
+                    subtype: 'WEEKLY',
+                    value: weeklyDays,
+                    dailyTarget: dailyHours,
+                    penalty: penalty,
+                    description: `주 ${weeklyDays}회 (일 ${dailyHours}시간) 이상 공부`
+                }
+            ] : [])} />
         </div>
     )
 }

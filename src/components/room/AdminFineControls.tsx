@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { generateDailyFines, seedFineTestData } from '@/app/actions/fines'
-import { Loader2, Zap, Database } from 'lucide-react'
+import { generateDailyFines, seedFineTestData, generateWeeklyFinesAction, confirmAllPaymentsAction } from '@/app/actions/fines'
+import { Loader2, Zap, Database, CalendarDays, CheckCircle } from 'lucide-react'
 
 export default function AdminFineControls({ roomId }: { roomId: string }) {
     const [loading, setLoading] = useState(false)
@@ -69,6 +69,61 @@ export default function AdminFineControls({ roomId }: { roomId: string }) {
                 >
                     {loading ? <Loader2 className="animate-spin" size={16} /> : <Zap size={16} />}
                     어제 벌금 정산하기
+                </button>
+
+                <button
+                    onClick={async () => {
+                        setLoading(true)
+                        setMessage('')
+                        const today = new Date().toISOString().split('T')[0]
+                        try {
+                            const res = await generateWeeklyFinesAction(roomId, today)
+                            if (res.finesCreated !== undefined) setMessage(`${res.finesCreated}건의 주간 벌금이 생성되었습니다.`)
+                            else setMessage(res.message || 'Error')
+                        } catch (e) { setMessage('오류 발생') }
+                        finally { setLoading(false) }
+                    }}
+                    disabled={loading}
+                    style={{
+                        padding: '0.75rem 1rem',
+                        backgroundColor: 'var(--secondary)',
+                        color: 'var(--secondary-foreground)',
+                        borderRadius: 'var(--radius)',
+                        border: 'none',
+                        display: 'flex', alignItems: 'center', gap: '0.5rem',
+                        cursor: loading ? 'not-allowed' : 'pointer'
+                    }}
+                >
+                    {loading ? <Loader2 className="animate-spin" size={16} /> : <CalendarDays size={16} />}
+                    주간 정산 (최근 7일)
+                </button>
+
+                <button
+                    onClick={async () => {
+                        if (!confirm('정말 모든 "납부 완료" 건을 승인하시겠습니까?')) return
+
+                        setLoading(true)
+                        setMessage('')
+                        try {
+                            const res = await confirmAllPaymentsAction(roomId)
+                            if (res.success) setMessage(`${res.count}건의 벌금을 일괄 승인했습니다.`)
+                            else setMessage(res.message || 'Error')
+                        } catch (e) { setMessage('오류가 발생했습니다.') }
+                        finally { setLoading(false) }
+                    }}
+                    disabled={loading}
+                    style={{
+                        padding: '0.75rem 1rem',
+                        backgroundColor: 'var(--success)',
+                        color: 'var(--success-foreground)', // Assuming these vars exist, else use hardcoded green
+                        borderRadius: 'var(--radius)',
+                        border: 'none',
+                        display: 'flex', alignItems: 'center', gap: '0.5rem',
+                        cursor: loading ? 'not-allowed' : 'pointer'
+                    }}
+                >
+                    {loading ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle size={16} />}
+                    일괄 납부 승인
                 </button>
 
                 <button

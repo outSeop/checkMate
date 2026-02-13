@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 
 export interface RoomData {
-    room: anyhow // Using 'any' for now to match current detailed types, or define explicit helper types
+    room: any // Using 'any' for now to match current detailed types, or define explicit helper types
     user: any
     membership: any
     activeSession: any
@@ -92,4 +92,34 @@ export async function getRoomDetails(roomId: string): Promise<{ data: RoomData |
         },
         error: null
     }
+}
+
+export async function getUserRooms() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return []
+
+    const { data: rooms, error } = await supabase
+        .from('rooms')
+        .select(`
+            *,
+            room_participants!inner (
+                role
+            ),
+            rules (
+                description,
+                condition_json,
+                penalty_amount
+            )
+        `)
+        .eq('room_participants.user_id', user.id)
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching user rooms:', error)
+        return []
+    }
+
+    return rooms
 }

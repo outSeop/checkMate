@@ -74,6 +74,10 @@ export default function CreateRoomPage() {
                     />
                 </div>
 
+                <div className={styles.field}>
+                    <RuleBuilder onRulesChange={() => { }} />
+                </div>
+
                 <div className={styles.checkboxContainer}>
                     <input
                         type="checkbox"
