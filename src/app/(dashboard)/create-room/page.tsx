@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { createRoom } from '@/app/actions/room'
 import RuleBuilder from '@/components/create-room/RuleBuilder'
 import styles from './CreateRoom.module.css'
@@ -12,6 +12,7 @@ const initialState = {
 
 export default function CreateRoomPage() {
     const [state, formAction, pending] = useActionState(createRoom, initialState)
+    const [noDeadline, setNoDeadline] = useState(false)
 
     return (
         <div className={styles.container}>
@@ -52,13 +53,27 @@ export default function CreateRoomPage() {
                         />
                     </div>
                     <div className={styles.field}>
-                        <label htmlFor="endDate" className={styles.label}>종료일 *</label>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <label htmlFor="endDate" className={styles.label} style={{ marginBottom: 0 }}>종료일 *</label>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <input
+                                    type="checkbox"
+                                    id="noDeadline"
+                                    checked={noDeadline}
+                                    onChange={(e) => setNoDeadline(e.target.checked)}
+                                    style={{ width: '16px', height: '16px' }}
+                                />
+                                <label htmlFor="noDeadline" style={{ fontSize: '0.8rem', cursor: 'pointer', color: 'var(--muted-foreground)' }}>기한 없음</label>
+                            </div>
+                        </div>
                         <input
                             type="date"
                             id="endDate"
                             name="endDate"
                             className={styles.input}
-                            required
+                            required={!noDeadline}
+                            disabled={noDeadline}
+                            style={noDeadline ? { backgroundColor: 'var(--muted)', color: 'transparent', cursor: 'not-allowed' } : {}}
                         />
                     </div>
                 </div>

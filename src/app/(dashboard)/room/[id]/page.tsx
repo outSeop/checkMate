@@ -77,7 +77,7 @@ export default async function RoomDetailPage({
                     <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.875rem', color: 'var(--foreground)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <Calendar size={16} className="text-indigo-500" />
-                            <span>{room.start_date} ~ {room.end_date}</span>
+                            <span>{room.start_date} ~ {room.end_date || '종료일 없음'}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <User size={16} className="text-indigo-500" />

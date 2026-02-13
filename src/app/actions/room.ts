@@ -22,7 +22,7 @@ export async function createRoom(prevState: any, formData: FormData) {
     const communicationLink = formData.get('communicationLink') as string
     const isPublic = formData.get('isPublic') === 'on'
 
-    if (!name || !startDate || !endDate) {
+    if (!name || !startDate) {
         return { message: '필수 항목을 모두 입력해주세요.' }
     }
 
@@ -33,7 +33,7 @@ export async function createRoom(prevState: any, formData: FormData) {
             name,
             description,
             start_date: startDate,
-            end_date: endDate,
+            end_date: endDate || null,
             communication_link: communicationLink,
             is_public: isPublic,
             owner_id: user.id,
