@@ -24,6 +24,26 @@ async function verifyRoomAdmin(roomId: string): Promise<{ userId: string } | { e
 }
 
 /**
+ * Load more fines for pagination
+ */
+export async function loadMoreFines(roomId: string, offset: number, limit: number = 50) {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+        .from('fines')
+        .select('*, users(username), rules(description)')
+        .eq('room_id', roomId)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1)
+
+    if (error) {
+        return { success: false, data: [] }
+    }
+
+    return { success: true, data: data || [] }
+}
+
+/**
  * Mark a fine as PAID (User action)
  */
 export async function markAsPaidAction(fineId: string, roomId: string) {

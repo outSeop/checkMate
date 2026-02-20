@@ -2,7 +2,7 @@
 
 import { useMemo, useCallback, useState } from 'react'
 import { Check, Clock, AlertCircle } from 'lucide-react'
-import { markAsPaidAction, confirmPaymentAction } from '@/app/actions/fines'
+import { markAsPaidAction, confirmPaymentAction, loadMoreFines } from '@/app/actions/fines'
 import type { Fine } from '@/types/database'
 
 const statusConfig = {
@@ -49,6 +49,9 @@ export default function FineList({ fines, currentUserId, isOwner, roomId }: { fi
 
     const [processingId, setProcessingId] = useState<string | null>(null)
     const [successId, setSuccessId] = useState<string | null>(null)
+    const [extraFines, setExtraFines] = useState<Fine[]>([])
+    const [hasMore, setHasMore] = useState(fines.length >= 50)
+    const [loadingMore, setLoadingMore] = useState(false)
 
     const handleMarkAsPaid = useCallback(async (fineId: string) => {
         if (!confirm('벌금을 납부하셨습니까?')) return
@@ -82,14 +85,29 @@ export default function FineList({ fines, currentUserId, isOwner, roomId }: { fi
         }
     }, [roomId])
 
-    const sortedFines = useMemo(
-        () => [...fines].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
-        [fines]
+    const allFines = useMemo(
+        () => [...fines, ...extraFines].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+        [fines, extraFines]
     )
+
+    const handleLoadMore = useCallback(async () => {
+        setLoadingMore(true)
+        try {
+            const result = await loadMoreFines(roomId, allFines.length)
+            if (result.success && result.data.length > 0) {
+                setExtraFines(prev => [...prev, ...result.data])
+                if (result.data.length < 50) setHasMore(false)
+            } else {
+                setHasMore(false)
+            }
+        } finally {
+            setLoadingMore(false)
+        }
+    }, [roomId, allFines.length])
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {sortedFines.map((fine) => {
+            {allFines.map((fine) => {
                 const config = statusConfig[fine.status] || statusConfig['PENDING']
                 const isMyFine = fine.user_id === currentUserId
                 const Icon = config.icon
@@ -176,6 +194,24 @@ export default function FineList({ fines, currentUserId, isOwner, roomId }: { fi
                     </div>
                 )
             })}
+            {hasMore && (
+                <button
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                    style={{
+                        padding: '0.75rem',
+                        backgroundColor: 'var(--muted)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius)',
+                        color: 'var(--foreground)',
+                        fontSize: '0.875rem',
+                        cursor: loadingMore ? 'default' : 'pointer',
+                        width: '100%',
+                    }}
+                >
+                    {loadingMore ? '불러오는 중...' : '더보기'}
+                </button>
+            )}
         </div>
     )
 }
