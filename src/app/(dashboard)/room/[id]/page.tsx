@@ -13,6 +13,11 @@ import FineList from '@/components/room/FineList'
 import JoinButton from '@/components/room/JoinButton'
 import AdminFineControls from '@/components/room/AdminFineControls'
 import RoomNotice from '@/components/room/RoomNotice'
+import StreakDisplay from '@/components/room/StreakDisplay'
+import StatsOverview from '@/components/room/StatsOverview'
+import WeeklyChart from '@/components/room/WeeklyChart'
+import Leaderboard from '@/components/room/Leaderboard'
+import { getPersonalStats, getWeeklyStudy, getMemberRankings } from '@/services/statsService'
 
 export default async function RoomDetailPage({
     params,
@@ -42,7 +47,9 @@ export default async function RoomDetailPage({
         todayTotalSeconds,
         participants,
         rules,
-        fines
+        fines,
+        myStreak,
+        streaks
     } = data
 
     const isOwner = membership?.role === 'OWNER'
@@ -120,7 +127,11 @@ export default async function RoomDetailPage({
             <main key={tab} className="animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto', padding: '1.5rem' }}>
                 {tab === 'home' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                        {/* Fine Status Card (Only for members) */}
+                        {/* Streak + Fine Status (Only for members) */}
+                        {isMember && (
+                            <StreakDisplay streak={myStreak} />
+                        )}
+
                         {isMember && fines && (
                             <MyFineStatus fines={fines.filter((f: any) => f.user_id === user?.id)} roomId={id} />
                         )}
@@ -132,8 +143,12 @@ export default async function RoomDetailPage({
                     </div>
                 )}
 
+                {tab === 'stats' && isMember && user && (
+                    <StatsTab userId={user.id} roomId={id} />
+                )}
+
                 {tab === 'members' && (
-                    <MemberList participants={participants || []} />
+                    <MemberList participants={participants || []} streaks={streaks} />
                 )}
 
                 {tab === 'rules' && (
@@ -144,6 +159,22 @@ export default async function RoomDetailPage({
                     <FineList fines={fines || []} currentUserId={user?.id || ''} isOwner={isOwner} roomId={room.id} />
                 )}
             </main>
+        </div>
+    )
+}
+
+async function StatsTab({ userId, roomId }: { userId: string, roomId: string }) {
+    const [personalStats, weeklyData, rankings] = await Promise.all([
+        getPersonalStats(userId, roomId),
+        getWeeklyStudy(userId, roomId),
+        getMemberRankings(roomId),
+    ])
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <StatsOverview stats={personalStats} />
+            <WeeklyChart data={weeklyData} />
+            <Leaderboard rankings={rankings} />
         </div>
     )
 }

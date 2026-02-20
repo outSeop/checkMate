@@ -9,6 +9,7 @@ export default function RoomTabs({ roomId }: { roomId: string }) {
 
     const tabs = [
         { id: 'home', label: '홈' },
+        { id: 'stats', label: '통계' },
         { id: 'rules', label: '규칙' },
         { id: 'fines', label: '벌금' },
         { id: 'members', label: '멤버' },
