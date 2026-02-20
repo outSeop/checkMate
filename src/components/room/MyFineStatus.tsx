@@ -77,10 +77,13 @@ export default function MyFineStatus({ fines, roomId }: { fines: Fine[], roomId:
                     <AlertCircle size={24} className="text-red-500" />
                 </div>
                 <div>
-                    <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.2rem', color: 'var(--destructive)' }}>
-                        미납 벌금: {totalUnpaid.toLocaleString()}원
+                    <h3 style={{ fontSize: '1rem', fontWeight: '500', marginBottom: '0.2rem', color: 'var(--muted-foreground)' }}>
+                        미납 벌금
                     </h3>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>
+                    <div style={{ fontSize: '1.75rem', fontWeight: '800', color: 'var(--destructive)', lineHeight: 1.2 }}>
+                        {totalUnpaid.toLocaleString()}원
+                    </div>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginTop: '0.2rem' }}>
                         {unpaidFines.length}건의 미납 내역이 있습니다.
                     </p>
                 </div>

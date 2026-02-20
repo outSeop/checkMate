@@ -5,6 +5,40 @@ import { User } from 'lucide-react'
 import type { RoomParticipant } from '@/types/database'
 
 export default function MemberList({ participants }: { participants: RoomParticipant[] }) {
+    if (participants.length <= 1) {
+        return (
+            <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '3rem 2rem',
+                textAlign: 'center',
+                backgroundColor: 'var(--card)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px dashed var(--border)',
+                color: 'var(--muted-foreground)'
+            }}>
+                <div style={{
+                    width: '48px', height: '48px',
+                    backgroundColor: 'var(--muted)',
+                    borderRadius: '50%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    marginBottom: '1rem',
+                    color: 'var(--muted-foreground)'
+                }}>
+                    <User size={24} />
+                </div>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--foreground)', marginBottom: '0.25rem' }}>
+                    아직 멤버가 없습니다
+                </h3>
+                <p style={{ fontSize: '0.875rem' }}>
+                    스터디 링크를 공유하여 멤버를 초대해 보세요.
+                </p>
+            </div>
+        )
+    }
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {participants.map((p) => (

@@ -117,7 +117,7 @@ export default async function RoomDetailPage({
             <RoomTabs roomId={id} />
 
             {/* Content Area */}
-            <main style={{ maxWidth: '800px', margin: '0 auto', padding: '1.5rem' }}>
+            <main key={tab} className="animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto', padding: '1.5rem' }}>
                 {tab === 'home' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         {/* Fine Status Card (Only for members) */}

@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
     ],
   },
+  devIndicators: {
+    position: 'bottom-right',
+  },
 };
 
 export default nextConfig;

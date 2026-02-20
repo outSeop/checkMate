@@ -43,7 +43,9 @@ export default function CreateRoomPage() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div className={styles.field}>
-                        <label htmlFor="startDate" className={styles.label}>시작일 *</label>
+                        <div style={{ display: 'flex', alignItems: 'center', height: '24px' }}>
+                            <label htmlFor="startDate" className={styles.label}>시작일 *</label>
+                        </div>
                         <input
                             type="date"
                             id="startDate"
@@ -53,7 +55,7 @@ export default function CreateRoomPage() {
                         />
                     </div>
                     <div className={styles.field}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '24px' }}>
                             <label htmlFor="endDate" className={styles.label} style={{ marginBottom: 0 }}>종료일 *</label>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                 <input
@@ -61,9 +63,9 @@ export default function CreateRoomPage() {
                                     id="noDeadline"
                                     checked={noDeadline}
                                     onChange={(e) => setNoDeadline(e.target.checked)}
-                                    style={{ width: '16px', height: '16px' }}
+                                    style={{ width: '16px', height: '16px', margin: 0 }}
                                 />
-                                <label htmlFor="noDeadline" style={{ fontSize: '0.8rem', cursor: 'pointer', color: 'var(--muted-foreground)' }}>기한 없음</label>
+                                <label htmlFor="noDeadline" style={{ fontSize: '0.8rem', cursor: 'pointer', color: 'var(--muted-foreground)', lineHeight: 1 }}>기한 없음</label>
                             </div>
                         </div>
                         <input

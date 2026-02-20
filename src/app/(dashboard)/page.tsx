@@ -19,19 +19,40 @@ export default async function HomePage() {
 
             {rooms.length === 0 ? (
                 <div style={{
-                    padding: '3rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4rem 2rem',
                     textAlign: 'center',
                     backgroundColor: 'var(--card)',
-                    borderRadius: 'var(--radius)',
+                    borderRadius: 'var(--radius-lg)',
+                    border: '1px dashed var(--border)',
                     color: 'var(--muted-foreground)'
                 }}>
-                    <p>참여 중인 스터디가 없습니다.</p>
-                    <Link href="/create-room" style={{
-                        display: 'inline-block',
-                        marginTop: '1rem',
-                        color: 'var(--primary)',
-                        textDecoration: 'underline'
+                    <div style={{
+                        width: '64px', height: '64px',
+                        backgroundColor: 'var(--muted)',
+                        borderRadius: '50%',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        marginBottom: '1.5rem',
+                        color: 'var(--foreground)'
                     }}>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+                        </svg>
+                    </div>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--foreground)', marginBottom: '0.5rem' }}>
+                        아직 참여 중인 스터디가 없네요!
+                    </h3>
+                    <p style={{ fontSize: '0.875rem', marginBottom: '2rem', maxWidth: '300px', lineHeight: 1.5 }}>
+                        새로운 스터디를 개설하고 팀원들과 함께 목표를 달성해 보세요.
+                    </p>
+                    <Link href="/create-room" className={styles.createButton} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                        padding: '0.75rem 1.5rem', fontSize: '0.9rem'
+                    }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
                         첫 스터디 만들기
                     </Link>
                 </div>

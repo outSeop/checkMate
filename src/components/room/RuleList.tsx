@@ -17,14 +17,33 @@ export default function RuleList({ rules }: { rules: Rule[] }) {
     if (rules.length === 0) {
         return (
             <div style={{
-                padding: '3rem',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '3rem 2rem',
                 textAlign: 'center',
-                color: 'var(--muted-foreground)',
                 backgroundColor: 'var(--card)',
-                borderRadius: 'var(--radius)',
-                border: '1px solid var(--border)'
+                borderRadius: 'var(--radius-lg)',
+                border: '1px dashed var(--border)',
+                color: 'var(--muted-foreground)'
             }}>
-                <p>등록된 규칙이 없습니다.</p>
+                <div style={{
+                    width: '48px', height: '48px',
+                    backgroundColor: 'var(--muted)',
+                    borderRadius: '50%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    marginBottom: '1rem',
+                    color: 'var(--muted-foreground)'
+                }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" /><path d="m9 12 2 2 4-4" /></svg>
+                </div>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--foreground)', marginBottom: '0.25rem' }}>
+                    등록된 규칙이 없습니다
+                </h3>
+                <p style={{ fontSize: '0.875rem' }}>
+                    방장이 아직 스터디 규칙을 설정하지 않았어요.
+                </p>
             </div>
         )
     }

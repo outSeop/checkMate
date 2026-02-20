@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useCallback } from 'react'
+import { useMemo, useCallback, useState } from 'react'
 import { Check, Clock, AlertCircle } from 'lucide-react'
 import { markAsPaidAction, confirmPaymentAction } from '@/app/actions/fines'
 import type { Fine } from '@/types/database'
@@ -16,28 +16,70 @@ export default function FineList({ fines, currentUserId, isOwner, roomId }: { fi
     if (fines.length === 0) {
         return (
             <div style={{
-                padding: '3rem',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '3rem 2rem',
                 textAlign: 'center',
-                color: 'var(--muted-foreground)',
                 backgroundColor: 'var(--card)',
-                borderRadius: 'var(--radius)',
-                border: '1px solid var(--border)'
+                borderRadius: 'var(--radius-lg)',
+                border: '1px dashed var(--border)',
+                color: 'var(--muted-foreground)'
             }}>
-                <p>벌금 내역이 없습니다.</p>
+                <div style={{
+                    width: '48px', height: '48px',
+                    backgroundColor: 'var(--muted)',
+                    borderRadius: '50%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    marginBottom: '1rem',
+                    color: 'var(--muted-foreground)'
+                }}>
+                    <AlertCircle size={24} />
+                </div>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--foreground)', marginBottom: '0.25rem' }}>
+                    등록된 벌금이 없습니다
+                </h3>
+                <p style={{ fontSize: '0.875rem' }}>
+                    현재 부과된 벌금 내역이 존재하지 않아요.
+                </p>
             </div>
         )
     }
 
+    const [processingId, setProcessingId] = useState<string | null>(null)
+    const [successId, setSuccessId] = useState<string | null>(null)
+
     const handleMarkAsPaid = useCallback(async (fineId: string) => {
         if (!confirm('벌금을 납부하셨습니까?')) return
-        const result = await markAsPaidAction(fineId, roomId)
-        if (!result.success) alert(result.message)
+        setProcessingId(fineId)
+        try {
+            const result = await markAsPaidAction(fineId, roomId)
+            if (!result.success) {
+                alert(result.message)
+            } else {
+                setSuccessId(fineId)
+                setTimeout(() => setSuccessId(null), 2000)
+            }
+        } finally {
+            setProcessingId(null)
+        }
     }, [roomId])
 
     const handleConfirm = useCallback(async (fineId: string) => {
         if (!confirm('납부를 확인하시겠습니까?')) return
-        const result = await confirmPaymentAction(fineId, roomId)
-        if (!result.success) alert(result.message)
+        setProcessingId(fineId)
+        try {
+            const result = await confirmPaymentAction(fineId, roomId)
+            if (!result.success) {
+                alert(result.message)
+            } else {
+                setSuccessId(fineId)
+                setTimeout(() => setSuccessId(null), 2000)
+            }
+        } finally {
+            setProcessingId(null)
+        }
     }, [roomId])
 
     const sortedFines = useMemo(
@@ -99,26 +141,34 @@ export default function FineList({ fines, currentUserId, isOwner, roomId }: { fi
                                 {fine.status === 'PENDING' && isMyFine && (
                                     <button
                                         onClick={() => handleMarkAsPaid(fine.id)}
+                                        disabled={processingId === fine.id || successId === fine.id}
                                         style={{
                                             fontSize: '0.75rem', padding: '0.25rem 0.5rem',
-                                            backgroundColor: 'var(--secondary)', color: 'var(--secondary-foreground)',
-                                            border: 'none', borderRadius: '4px', cursor: 'pointer', marginLeft: '0.5rem'
+                                            backgroundColor: successId === fine.id ? 'var(--success)' : 'var(--secondary)',
+                                            color: successId === fine.id ? 'var(--success-foreground)' : 'var(--secondary-foreground)',
+                                            border: 'none', borderRadius: '4px', cursor: (processingId === fine.id || successId === fine.id) ? 'default' : 'pointer', marginLeft: '0.5rem',
+                                            transition: 'all 0.2s ease',
+                                            display: 'inline-flex', alignItems: 'center', gap: '4px'
                                         }}
                                     >
-                                        납부 완료
+                                        {processingId === fine.id ? '처리 중...' : (successId === fine.id ? <><Check size={12} /> 완료</> : '납부 완료')}
                                     </button>
                                 )}
 
                                 {fine.status === 'PAID' && isOwner && (
                                     <button
                                         onClick={() => handleConfirm(fine.id)}
+                                        disabled={processingId === fine.id || successId === fine.id}
                                         style={{
                                             fontSize: '0.75rem', padding: '0.25rem 0.5rem',
-                                            backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)',
-                                            border: 'none', borderRadius: '4px', cursor: 'pointer', marginLeft: '0.5rem'
+                                            backgroundColor: successId === fine.id ? 'var(--success)' : 'var(--primary)',
+                                            color: successId === fine.id ? 'var(--success-foreground)' : 'var(--primary-foreground)',
+                                            border: 'none', borderRadius: '4px', cursor: (processingId === fine.id || successId === fine.id) ? 'default' : 'pointer', marginLeft: '0.5rem',
+                                            transition: 'all 0.2s ease',
+                                            display: 'inline-flex', alignItems: 'center', gap: '4px'
                                         }}
                                     >
-                                        승인
+                                        {processingId === fine.id ? '처리 중...' : (successId === fine.id ? <><Check size={12} /> 완료</> : '승인')}
                                     </button>
                                 )}
                             </div>
