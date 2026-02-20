@@ -1,11 +1,22 @@
-export function getYesterdayDateString(): string {
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-    return yesterday.toISOString().split('T')[0]
+import { formatInTimeZone, toZonedTime } from 'date-fns-tz'
+import { subDays } from 'date-fns'
+
+export const DEFAULT_TIMEZONE = 'Asia/Seoul'
+
+export function getYesterdayDateString(tz: string = DEFAULT_TIMEZONE): string {
+    const now = toZonedTime(new Date(), tz)
+    const yesterday = subDays(now, 1)
+    return formatInTimeZone(yesterday, tz, 'yyyy-MM-dd')
 }
 
-export function getTodayDateString(): string {
-    return new Date().toISOString().split('T')[0]
+export function getTodayDateString(tz: string = DEFAULT_TIMEZONE): string {
+    return formatInTimeZone(new Date(), tz, 'yyyy-MM-dd')
+}
+
+/** UTC Date를 지정된 타임존의 시/분으로 변환 */
+export function getHoursMinutesInTimezone(utcDate: Date, tz: string = DEFAULT_TIMEZONE): { hours: number, minutes: number } {
+    const zonedDate = toZonedTime(utcDate, tz)
+    return { hours: zonedDate.getHours(), minutes: zonedDate.getMinutes() }
 }
 
 export function formatTime(totalSec: number): string {

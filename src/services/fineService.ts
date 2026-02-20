@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createNotification } from '@/app/actions/notifications'
+import { getHoursMinutesInTimezone } from '@/lib/dateUtils'
 import type { AttendanceLog, Rule, RuleConditionJson } from '@/types/database'
 
 export async function generateDailyFinesService(roomId: string, dateStr: string) {
@@ -139,11 +140,8 @@ function evaluateAttendanceRule(rule: Rule, log: AttendanceLog | undefined): boo
         if (!log) return false // No log means ABSENT (handled by separate rule usually)
 
         // Parse Check-in Time (UTC) and convert to KST
-        // TODO: Use a robust timezone library (e.g. date-fns-tz) for production.
         const checkInDate = new Date(log.check_in_time)
-        const kstCheckIn = new Date(checkInDate.getTime() + (9 * 60 * 60 * 1000))
-        const checkInHours = kstCheckIn.getUTCHours()
-        const checkInMinutes = kstCheckIn.getUTCMinutes()
+        const { hours: checkInHours, minutes: checkInMinutes } = getHoursMinutesInTimezone(checkInDate)
 
         if (!condition.time) return false
         const [ruleHours, ruleMinutes] = condition.time.split(':').map(Number)
@@ -354,7 +352,18 @@ export async function confirmFinePayment(fineId: string) {
  * Check if the room needs weekly settlement and run it if necessary.
  * This should be called when visiting the room page.
  */
+// 인메모리 캐시: 같은 방에 대해 30분 내 중복 체크 방지
+const settlementCheckCache = new Map<string, number>()
+const SETTLEMENT_CACHE_TTL = 30 * 60 * 1000 // 30분
+
 export async function checkAndRunWeeklySettlement(roomId: string) {
+    const now = Date.now()
+    const lastCheck = settlementCheckCache.get(roomId)
+    if (lastCheck && now - lastCheck < SETTLEMENT_CACHE_TTL) {
+        return // 캐시 유효 → DB 조회 스킵
+    }
+    settlementCheckCache.set(roomId, now)
+
     const supabase = await createClient()
 
     // 1. Fetch Room Settings
