@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { Notification } from '@/types/database'
 
-export default function NotificationBell({ userId }: { userId: string }) {
+export default function NotificationBell({ userId, align = 'right' }: { userId: string, align?: 'left' | 'right' }) {
     const [notifications, setNotifications] = useState<Notification[]>([])
     const [unreadCount, setUnreadCount] = useState(0)
     const [isOpen, setIsOpen] = useState(false)
@@ -132,8 +132,10 @@ export default function NotificationBell({ userId }: { userId: string }) {
                     <div style={{
                         position: 'absolute',
                         top: '100%',
-                        right: 0,
+                        right: align === 'right' ? 0 : 'auto',
+                        left: align === 'left' ? 0 : 'auto',
                         width: '320px',
+                        maxWidth: 'calc(100vw - 2rem)',
                         maxHeight: '400px',
                         overflowY: 'auto',
                         backgroundColor: 'var(--card)',

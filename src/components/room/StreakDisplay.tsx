@@ -21,14 +21,14 @@ export default function StreakDisplay({ streak }: { streak: UserStreak | null })
                 width: '44px',
                 height: '44px',
                 borderRadius: '50%',
-                backgroundColor: current > 0 ? 'hsl(25, 95%, 95%)' : 'var(--muted)',
+                backgroundColor: current > 0 ? 'hsl(25, 95%, 95%)' : 'var(--secondary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
             }}>
                 <Flame
                     size={22}
-                    color={current > 0 ? 'hsl(25, 95%, 53%)' : 'var(--muted-foreground)'}
+                    color={current > 0 ? 'hsl(25, 95%, 53%)' : 'var(--secondary-foreground)'}
                     fill={current > 0 ? 'hsl(25, 95%, 53%)' : 'none'}
                 />
             </div>

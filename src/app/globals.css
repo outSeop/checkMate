@@ -15,6 +15,9 @@
   --muted: #f4f4f5;
   --muted-foreground: #71717a;
 
+  --secondary: #e4e4e7;
+  --secondary-foreground: #27272a;
+
   --border: #e4e4e7;
   --input: #e4e4e7;
 
@@ -55,9 +58,36 @@
     --muted: #27272a;
     --muted-foreground: #a1a1aa;
 
+    --secondary: #3f3f46;
+    --secondary-foreground: #fafafa;
+
     --border: #27272a;
     --input: #27272a;
   }
+}
+
+.dark {
+  /* Brand Colors - Soft Indigo */
+  --primary: #818cf8;
+  --primary-foreground: #000000;
+
+  /* Neutral Colors */
+  --background: #09090b;
+  /* Deep Black */
+  --foreground: #ededed;
+
+  --card: #18181b;
+  --card-foreground: #ededed;
+  --card-border: #27272a;
+
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+
+  --secondary: #3f3f46;
+  --secondary-foreground: #fafafa;
+
+  --border: #27272a;
+  --input: #27272a;
 }
 
 html,

@@ -2,20 +2,27 @@
 'use client'
 
 import styles from './Shell.module.css'
-import { Home, Compass, User as UserIcon, Calendar, LogIn } from 'lucide-react'
+import { Home, Compass, User as UserIcon, Calendar, LogIn, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
 
 import NotificationBell from '@/components/common/NotificationBell'
+import { ThemeToggle } from '@/components/common/ThemeToggle'
 
 export function Shell({ children, user }: { children: React.ReactNode, user: User | null }) {
     return (
         <div className={styles.shell}>
             {/* Mobile Header: Visible only on mobile */}
             <header className={styles.mobileHeader}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Study App</div>
-                {user && <NotificationBell userId={user.id} />}
+                <div style={{ fontSize: '1.25rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <BookOpen size={24} className="text-primary" />
+                    Mogakko Check
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <ThemeToggle />
+                    {user && <NotificationBell userId={user.id} />}
+                </div>
             </header>
 
             <aside className={styles.sidebar}>
@@ -25,10 +32,14 @@ export function Shell({ children, user }: { children: React.ReactNode, user: Use
                     alignItems: 'center',
                     marginBottom: '2rem'
                 }}>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
-                        Study App
+                    <div style={{ fontSize: '1.25rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <BookOpen size={24} className="text-primary" />
+                        Mogakko Check
                     </div>
-                    {user && <NotificationBell userId={user.id} />}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <ThemeToggle />
+                        {user && <NotificationBell userId={user.id} align="left" />}
+                    </div>
                 </div>
                 <NavLinks user={user} />
             </aside>

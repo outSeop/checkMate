@@ -28,16 +28,20 @@ export const viewport: Viewport = {
   themeColor: "#4f46e5", // Indigo-600
 };
 
+import { ThemeProvider } from '@/components/common/ThemeProvider'
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <body className={inter.className}>
-        {children}
-        <InstallPrompt />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+          <InstallPrompt />
+        </ThemeProvider>
       </body>
     </html>
   );

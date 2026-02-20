@@ -34,7 +34,7 @@ export default async function ProfilePage() {
     const bestStreak = streaks?.reduce((max, s) => Math.max(max, s.max_streak || 0), 0) || 0
 
     return (
-        <div style={{ maxWidth: '600px', margin: '0 auto', padding: '1.5rem' }}>
+        <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto', padding: '1.5rem' }}>
             {/* Profile Header */}
             <div style={{
                 display: 'flex',
@@ -74,7 +74,7 @@ export default async function ProfilePage() {
             {/* Stats Grid */}
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                 gap: '1rem',
                 marginBottom: '1.5rem',
             }}>

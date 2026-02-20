@@ -67,7 +67,7 @@ export default async function RoomDetailPage({
                 backgroundColor: 'var(--card)',
                 borderBottom: '1px solid var(--border)'
             }}>
-                <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+                <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                         <h1 style={{ fontSize: '1.75rem', fontWeight: '800', lineHeight: 1.2, margin: 0 }}>
                             {room.name}
@@ -124,7 +124,7 @@ export default async function RoomDetailPage({
             <RoomTabs roomId={id} />
 
             {/* Content Area */}
-            <main key={tab} className="animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto', padding: '1.5rem' }}>
+            <main key={tab} className="animate-fade-in" style={{ width: '100%', maxWidth: '1000px', margin: '0 auto', padding: '1.5rem' }}>
                 {tab === 'home' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         {/* Streak + Fine Status (Only for members) */}
