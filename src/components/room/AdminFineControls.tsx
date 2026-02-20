@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { generateDailyFines, seedFineTestData, generateWeeklyFinesAction, confirmAllPaymentsAction } from '@/app/actions/fines'
 import { Loader2, Zap, Database, CalendarDays, CheckCircle } from 'lucide-react'
+import { getYesterdayDateString, getTodayDateString } from '@/lib/dateUtils'
 
 export default function AdminFineControls({ roomId }: { roomId: string }) {
     const [loading, setLoading] = useState(false)
@@ -12,10 +13,7 @@ export default function AdminFineControls({ roomId }: { roomId: string }) {
         setLoading(true)
         setMessage('')
 
-        // Default to Yesterday for convenience
-        const yesterday = new Date()
-        yesterday.setDate(yesterday.getDate() - 1)
-        const dateStr = yesterday.toISOString().split('T')[0] // YYYY-MM-DD
+        const dateStr = getYesterdayDateString()
 
         try {
             const res = await generateDailyFines(roomId, dateStr)
@@ -25,6 +23,7 @@ export default function AdminFineControls({ roomId }: { roomId: string }) {
                 setMessage(res.message || 'Error')
             }
         } catch (e) {
+            console.error('Daily fine generation error:', e)
             setMessage('오류가 발생했습니다.')
         } finally {
             setLoading(false)
@@ -37,6 +36,7 @@ export default function AdminFineControls({ roomId }: { roomId: string }) {
             await seedFineTestData(roomId)
             setMessage('테스트 데이터(규칙+지각기록)가 생성되었습니다.')
         } catch (e) {
+            console.error('Seed data error:', e)
             setMessage('Seed Error')
         } finally {
             setLoading(false)
@@ -75,12 +75,12 @@ export default function AdminFineControls({ roomId }: { roomId: string }) {
                     onClick={async () => {
                         setLoading(true)
                         setMessage('')
-                        const today = new Date().toISOString().split('T')[0]
+                        const today = getTodayDateString()
                         try {
                             const res = await generateWeeklyFinesAction(roomId, today)
                             if (res.finesCreated !== undefined) setMessage(`${res.finesCreated}건의 주간 벌금이 생성되었습니다.`)
                             else setMessage(res.message || 'Error')
-                        } catch (e) { setMessage('오류 발생') }
+                        } catch (e) { console.error('Weekly fine generation error:', e); setMessage('오류 발생') }
                         finally { setLoading(false) }
                     }}
                     disabled={loading}
@@ -108,7 +108,7 @@ export default function AdminFineControls({ roomId }: { roomId: string }) {
                             const res = await confirmAllPaymentsAction(roomId)
                             if (res.success) setMessage(`${res.count}건의 벌금을 일괄 승인했습니다.`)
                             else setMessage(res.message || 'Error')
-                        } catch (e) { setMessage('오류가 발생했습니다.') }
+                        } catch (e) { console.error('Confirm all payments error:', e); setMessage('오류가 발생했습니다.') }
                         finally { setLoading(false) }
                     }}
                     disabled={loading}

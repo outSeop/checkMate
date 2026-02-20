@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { createManualFineAction } from '@/app/actions/fines'
-import { PlusCircle, X, Loader2 } from 'lucide-react'
+import { PlusCircle, Loader2 } from 'lucide-react'
+import Modal from '@/components/common/Modal'
 
 export default function ManualFineButton({ roomId }: { roomId: string }) {
     const [isOpen, setIsOpen] = useState(false)
@@ -16,18 +17,22 @@ export default function ManualFineButton({ roomId }: { roomId: string }) {
         if (!amount || !reason) return
 
         setLoading(true)
-        const result = await createManualFineAction(roomId, Number(amount), reason, payImmediately)
-        setLoading(false)
-
-        if (result.success) {
-            setIsOpen(false)
-            setAmount('')
-            setReason('')
-            setPayImmediately(false)
-            // Ideally toast success
-            alert('벌금이 추가되었습니다.')
-        } else {
-            alert(result.message)
+        try {
+            const result = await createManualFineAction(roomId, Number(amount), reason, payImmediately)
+            if (result.success) {
+                setIsOpen(false)
+                setAmount('')
+                setReason('')
+                setPayImmediately(false)
+                alert('벌금이 추가되었습니다.')
+            } else {
+                alert(result.message)
+            }
+        } catch (e) {
+            console.error('ManualFineButton error:', e)
+            alert('벌금 추가 중 오류가 발생했습니다.')
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -50,97 +55,74 @@ export default function ManualFineButton({ roomId }: { roomId: string }) {
                 벌금/후원 추가
             </button>
 
-            {isOpen && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    zIndex: 50
-                }}>
-                    <div style={{
-                        backgroundColor: 'var(--card)',
-                        padding: '1.5rem',
-                        borderRadius: 'var(--radius)',
-                        width: '90%', maxWidth: '400px',
-                        border: '1px solid var(--border)',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                            <h3 style={{ fontWeight: 'bold' }}>벌금 직접 추가</h3>
-                            <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>금액 (원)</label>
-                                <input
-                                    type="number"
-                                    value={amount}
-                                    onChange={(e) => setAmount(e.target.value)}
-                                    placeholder="예: 3000"
-                                    required
-                                    min="100"
-                                    step="100"
-                                    style={{
-                                        width: '100%', padding: '0.75rem',
-                                        borderRadius: 'var(--radius)', border: '1px solid var(--border)',
-                                        backgroundColor: 'var(--background)'
-                                    }}
-                                />
-                            </div>
-
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>사유 (메모)</label>
-                                <input
-                                    type="text"
-                                    value={reason}
-                                    onChange={(e) => setReason(e.target.value)}
-                                    placeholder="예: 어제 지각해서 자진 납부"
-                                    required
-                                    style={{
-                                        width: '100%', padding: '0.75rem',
-                                        borderRadius: 'var(--radius)', border: '1px solid var(--border)',
-                                        backgroundColor: 'var(--background)'
-                                    }}
-                                />
-                            </div>
-
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <input
-                                    type="checkbox"
-                                    id="payImmediately"
-                                    checked={payImmediately}
-                                    onChange={(e) => setPayImmediately(e.target.checked)}
-                                    style={{ width: '1rem', height: '1rem' }}
-                                />
-                                <label htmlFor="payImmediately" style={{ fontSize: '0.875rem', cursor: 'pointer' }}>
-                                    바로 납부 완료 처리하기
-                                </label>
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                style={{
-                                    padding: '0.75rem',
-                                    backgroundColor: 'var(--primary)',
-                                    color: 'var(--primary-foreground)',
-                                    borderRadius: 'var(--radius)',
-                                    border: 'none',
-                                    fontWeight: '600',
-                                    cursor: loading ? 'not-allowed' : 'pointer',
-                                    display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem'
-                                }}
-                            >
-                                {loading && <Loader2 className="animate-spin" size={16} />}
-                                추가하기
-                            </button>
-                        </form>
+            <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="벌금 직접 추가">
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>금액 (원)</label>
+                        <input
+                            type="number"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            placeholder="예: 3000"
+                            required
+                            min="100"
+                            step="100"
+                            style={{
+                                width: '100%', padding: '0.75rem',
+                                borderRadius: 'var(--radius)', border: '1px solid var(--border)',
+                                backgroundColor: 'var(--background)'
+                            }}
+                        />
                     </div>
-                </div>
-            )}
+
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>사유 (메모)</label>
+                        <input
+                            type="text"
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                            placeholder="예: 어제 지각해서 자진 납부"
+                            required
+                            style={{
+                                width: '100%', padding: '0.75rem',
+                                borderRadius: 'var(--radius)', border: '1px solid var(--border)',
+                                backgroundColor: 'var(--background)'
+                            }}
+                        />
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <input
+                            type="checkbox"
+                            id="payImmediately"
+                            checked={payImmediately}
+                            onChange={(e) => setPayImmediately(e.target.checked)}
+                            style={{ width: '1rem', height: '1rem' }}
+                        />
+                        <label htmlFor="payImmediately" style={{ fontSize: '0.875rem', cursor: 'pointer' }}>
+                            바로 납부 완료 처리하기
+                        </label>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        style={{
+                            padding: '0.75rem',
+                            backgroundColor: 'var(--primary)',
+                            color: 'var(--primary-foreground)',
+                            borderRadius: 'var(--radius)',
+                            border: 'none',
+                            fontWeight: '600',
+                            cursor: loading ? 'not-allowed' : 'pointer',
+                            display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem'
+                        }}
+                    >
+                        {loading && <Loader2 className="animate-spin" size={16} />}
+                        추가하기
+                    </button>
+                </form>
+            </Modal>
         </>
     )
 }

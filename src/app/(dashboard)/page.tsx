@@ -37,7 +37,7 @@ export default async function HomePage() {
                 </div>
             ) : (
                 <div className={styles.grid}>
-                    {rooms.map((room: any) => (
+                    {rooms.map((room) => (
                         <Link href={`/room/${room.id}`} key={room.id} style={{ textDecoration: 'none', color: 'inherit' }}>
                             <div className={styles.card}>
                                 <h3 className={styles.cardTitle}>{room.name}</h3>

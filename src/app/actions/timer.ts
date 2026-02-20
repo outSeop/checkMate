@@ -8,7 +8,7 @@ export async function startSession(roomId: string, message: string = '') {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-        return { message: '로그인이 필요합니다.' }
+        return { success: false, message: '로그인이 필요합니다.' }
     }
 
     // Insert new log with status 'PRESENT'
@@ -27,7 +27,7 @@ export async function startSession(roomId: string, message: string = '') {
 
     if (error) {
         console.error('Start Session Error:', error)
-        return { message: '공부 시작 처리에 실패했습니다.' }
+        return { success: false, message: '공부 시작 처리에 실패했습니다.' }
     }
 
     revalidatePath(`/room/${roomId}`)
@@ -47,7 +47,7 @@ export async function endSession(sessionId: string, durationSeconds: number, roo
 
     if (error) {
         console.error('End Session Error:', error)
-        return { message: '종료 처리에 실패했습니다.' }
+        return { success: false, message: '종료 처리에 실패했습니다.' }
     }
 
     revalidatePath(`/room/${roomId}`)

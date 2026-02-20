@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Play, Pause } from 'lucide-react'
 import { startSession, endSession } from '@/app/actions/timer'
+import { formatTime } from '@/lib/dateUtils'
 
 export default function SiTimer({
     roomId,
@@ -36,16 +37,6 @@ export default function SiTimer({
     useEffect(() => {
         setTotalSeconds(initialTotalSeconds)
     }, [initialTotalSeconds])
-
-    // Format seconds to HH:MM:SS
-    const formatTime = (totalSec: number) => {
-        const hours = Math.floor(totalSec / 3600)
-        const minutes = Math.floor((totalSec % 3600) / 60)
-        const seconds = totalSec % 60
-
-        const pad = (n: number) => n.toString().padStart(2, '0')
-        return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
-    }
 
     const handleStart = async () => {
         if (!currentSessionId) {

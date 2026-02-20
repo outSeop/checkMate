@@ -1,18 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createNotification } from '@/app/actions/notifications'
-
-interface AttendanceLog {
-    check_in_time: string
-    status: string
-    // ... other fields
-}
-
-interface Rule {
-    id: string
-    type: string
-    condition_json: any
-    penalty_amount: number
-}
+import type { AttendanceLog, Rule, RuleConditionJson } from '@/types/database'
 
 export async function generateDailyFinesService(roomId: string, dateStr: string) {
     const supabase = await createClient()
@@ -57,24 +45,29 @@ export async function generateDailyFinesService(roomId: string, dateStr: string)
 
     const vacationUserIds = new Set(vacations?.map(v => v.user_id) || [])
 
-    const logsMap = new Map(logs?.map(l => [l.user_id, l]) || [])
     let finesCreated = 0
 
-    // 4. Iterate and Apply Rules
+    // 4. Batch fetch existing fines for idempotency check (avoids N+1 queries)
+    const { data: existingFines } = await supabase
+        .from('fines')
+        .select('user_id, rule_id')
+        .eq('room_id', roomId)
+        .gte('created_at', startOfDay)
+        .lt('created_at', endOfDay)
+
+    const existingFineKeys = new Set(
+        (existingFines || []).map(f => `${f.user_id}:${f.rule_id}`)
+    )
+
+    // 5. Iterate and Apply Rules
     for (const p of participants) {
-        // Validation: Skip if user is on vacation
         if (vacationUserIds.has(p.user_id)) {
             continue
         }
 
-        // Collect all logs for this user
         const userLogs = logs?.filter(l => l.user_id === p.user_id) || []
-
-        // Calculate Total Duration
-        // duration_seconds might be null if strictly typed, so handle default 0
         const dailyDuration = userLogs.reduce((acc, l) => acc + (l.duration_seconds || 0), 0)
 
-        // Find the First Check-in Log (for Lateness check)
         const firstLog = userLogs.length > 0
             ? userLogs.sort((a, b) => new Date(a.check_in_time).getTime() - new Date(b.check_in_time).getTime())[0]
             : undefined
@@ -83,17 +76,7 @@ export async function generateDailyFinesService(roomId: string, dateStr: string)
             const fineToCreate = await evaluateRule(rule, firstLog, p.user_id, startOfDay, endOfDay, dailyDuration)
 
             if (fineToCreate) {
-                // Check Idempotency
-                const { data: existingFine } = await supabase
-                    .from('fines')
-                    .select('id')
-                    .eq('user_id', p.user_id)
-                    .eq('rule_id', rule.id)
-                    .gte('created_at', startOfDay)
-                    .lt('created_at', endOfDay)
-                    .maybeSingle()
-
-                if (!existingFine) {
+                if (!existingFineKeys.has(`${p.user_id}:${rule.id}`)) {
                     await supabase.from('fines').insert({
                         room_id: roomId,
                         user_id: p.user_id,
@@ -162,6 +145,7 @@ function evaluateAttendanceRule(rule: Rule, log: AttendanceLog | undefined): boo
         const checkInHours = kstCheckIn.getUTCHours()
         const checkInMinutes = kstCheckIn.getUTCMinutes()
 
+        if (!condition.time) return false
         const [ruleHours, ruleMinutes] = condition.time.split(':').map(Number)
         const checkInTotal = checkInHours * 60 + checkInMinutes
         const ruleTotal = ruleHours * 60 + ruleMinutes
@@ -235,22 +219,30 @@ export async function generateWeeklyFinesService(roomId: string, endDateStr: str
 
     let finesCreated = 0
 
-    // 5. Evaluate Rules
+    // 5. Batch fetch existing weekly fines for idempotency (avoids N+1 queries)
+    const todayStr = new Date().toISOString().split('T')[0]
+    const { data: existingWeeklyFines } = await supabase
+        .from('fines')
+        .select('user_id, rule_id')
+        .eq('room_id', roomId)
+        .gte('created_at', todayStr)
+
+    const existingWeeklyFineKeys = new Set(
+        (existingWeeklyFines || []).map(f => `${f.user_id}:${f.rule_id}`)
+    )
+
+    // 6. Evaluate Rules
     for (const p of participants) {
         const userLogs = logs?.filter(l => l.user_id === p.user_id) || []
 
-        // Count distinct days attended
         const attendedDaysSet = new Set(userLogs.map(l => new Date(l.check_in_time).toISOString().split('T')[0]))
         let attendedCount = attendedDaysSet.size
 
-        // Add Vacation Days to attended count
-        // Iterate through the 7 days of the week, check if vacation
         for (let i = 0; i < 7; i++) {
             const d = new Date(start)
             d.setDate(d.getDate() + i)
             const dStr = d.toISOString().split('T')[0]
 
-            // If not attended, but is vacation, count it!
             if (!attendedDaysSet.has(dStr) && isVacationDay(p.user_id, dStr)) {
                 attendedCount++
             }
@@ -263,16 +255,7 @@ export async function generateWeeklyFinesService(roomId: string, endDateStr: str
                 const missedDays = requiredCount - attendedCount
                 const totalFineAmount = missedDays * rule.penalty_amount
 
-                // Create Fine
-                const { data: existingFine } = await supabase
-                    .from('fines')
-                    .select('id')
-                    .eq('user_id', p.user_id)
-                    .eq('rule_id', rule.id)
-                    .gte('created_at', new Date().toISOString().split('T')[0]) // Created today?
-                    .maybeSingle()
-
-                if (!existingFine) {
+                if (!existingWeeklyFineKeys.has(`${p.user_id}:${rule.id}`)) {
                     await supabase.from('fines').insert({
                         room_id: roomId,
                         user_id: p.user_id,

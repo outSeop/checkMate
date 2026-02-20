@@ -2,9 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-
-// Notification Type
-type NotificationType = 'FINE' | 'NOTICE' | 'SYSTEM' | 'PAYMENT' | 'VACATION'
+import type { NotificationType } from '@/types/database'
 
 /**
  * Creates a notification for a user.

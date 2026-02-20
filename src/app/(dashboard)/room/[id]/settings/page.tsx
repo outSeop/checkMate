@@ -20,8 +20,8 @@ export default async function RoomSettingsPage({ params }: { params: Promise<{ i
     return (
         <RoomSettingsForm
             roomId={id}
-            initialNotice={room.notice}
-            initialSettlementDay={room.settlement_day}
+            initialNotice={room.notice ?? ''}
+            initialSettlementDay={room.settlement_day ?? 1}
         />
     )
 }

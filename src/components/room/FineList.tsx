@@ -1,22 +1,9 @@
 'use client'
 
+import { useMemo, useCallback } from 'react'
 import { Check, Clock, AlertCircle } from 'lucide-react'
 import { markAsPaidAction, confirmPaymentAction } from '@/app/actions/fines'
-
-interface Fine {
-    id: string
-    amount: number
-    status: 'PENDING' | 'CONFIRMED' | 'DISPUTED' | 'PAID'
-    created_at: string
-    reason?: string
-    user_id: string
-    users?: {
-        username: string | null
-    } | null
-    rules?: {
-        description: string | null
-    } | null
-}
+import type { Fine } from '@/types/database'
 
 const statusConfig = {
     'PENDING': { label: '미납', color: 'var(--destructive)', icon: AlertCircle },
@@ -41,20 +28,22 @@ export default function FineList({ fines, currentUserId, isOwner, roomId }: { fi
         )
     }
 
-    const handleMarkAsPaid = async (fineId: string) => {
+    const handleMarkAsPaid = useCallback(async (fineId: string) => {
         if (!confirm('벌금을 납부하셨습니까?')) return
         const result = await markAsPaidAction(fineId, roomId)
         if (!result.success) alert(result.message)
-    }
+    }, [roomId])
 
-    const handleConfirm = async (fineId: string) => {
+    const handleConfirm = useCallback(async (fineId: string) => {
         if (!confirm('납부를 확인하시겠습니까?')) return
         const result = await confirmPaymentAction(fineId, roomId)
         if (!result.success) alert(result.message)
-    }
+    }, [roomId])
 
-    // Sort by Date DESC
-    const sortedFines = [...fines].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    const sortedFines = useMemo(
+        () => [...fines].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+        [fines]
+    )
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

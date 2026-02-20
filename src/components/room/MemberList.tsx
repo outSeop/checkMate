@@ -1,19 +1,10 @@
 'use client'
 
+import Image from 'next/image'
 import { User } from 'lucide-react'
+import type { RoomParticipant } from '@/types/database'
 
-interface Participant {
-    user_id: string
-    role: 'OWNER' | 'ADMIN' | 'MEMBER'
-    joined_at: string
-    users: {
-        username: string | null
-        profile_image_url: string | null
-    } | null
-    isOnline?: boolean // To be implemented
-}
-
-export default function MemberList({ participants }: { participants: any[] }) {
+export default function MemberList({ participants }: { participants: RoomParticipant[] }) {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {participants.map((p) => (
@@ -35,7 +26,7 @@ export default function MemberList({ participants }: { participants: any[] }) {
                             overflow: 'hidden'
                         }}>
                             {p.users?.profile_image_url ? (
-                                <img src={p.users.profile_image_url} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <Image src={p.users.profile_image_url} alt="profile" width={40} height={40} style={{ objectFit: 'cover' }} />
                             ) : (
                                 <User size={20} color="var(--muted-foreground)" />
                             )}

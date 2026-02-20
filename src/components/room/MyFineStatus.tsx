@@ -1,21 +1,20 @@
 'use client'
 
+import { useMemo } from 'react'
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
+import type { Fine } from '@/types/database'
 
 import VacationRequestButton from './VacationRequestButton'
 import ManualFineButton from './ManualFineButton'
 
-interface Fine {
-    id: string
-    amount: number
-    status: 'PENDING' | 'CONFIRMED' | 'DISPUTED' | 'PAID'
-    created_at: string
-}
-
 export default function MyFineStatus({ fines, roomId }: { fines: Fine[], roomId: string }) {
-    // Filter pertinent fines (Pending or Disputed)
-    const unpaidFines = fines.filter(f => f.status === 'PENDING' || f.status === 'DISPUTED')
-    const totalUnpaid = unpaidFines.reduce((acc, f) => acc + f.amount, 0)
+    const { unpaidFines, totalUnpaid } = useMemo(() => {
+        const unpaid = fines.filter(f => f.status === 'PENDING' || f.status === 'DISPUTED')
+        return {
+            unpaidFines: unpaid,
+            totalUnpaid: unpaid.reduce((acc, f) => acc + f.amount, 0)
+        }
+    }, [fines])
 
     const ActionButtons = () => (
         <div style={{ display: 'flex', gap: '0.5rem' }}>

@@ -20,6 +20,10 @@ vi.mock('@/lib/supabase/server', () => ({
     createClient: vi.fn(() => Promise.resolve(mockSupabase)),
 }))
 
+vi.mock('@/app/actions/notifications', () => ({
+    createNotification: vi.fn(() => Promise.resolve({ success: true })),
+}))
+
 describe('FineService Payment Flow', () => {
     beforeEach(() => {
         vi.clearAllMocks()

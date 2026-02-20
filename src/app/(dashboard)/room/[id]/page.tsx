@@ -24,7 +24,9 @@ export default async function RoomDetailPage({
     const { id } = await params
 
     // Automation: Check and run weekly settlement (Fire & Forget)
-    checkAndRunWeeklySettlement(id).catch(err => console.error(err))
+    checkAndRunWeeklySettlement(id).catch(err => {
+        console.error(`[Settlement] Failed for room ${id}:`, err instanceof Error ? err.message : err)
+    })
 
     const { data, error } = await getRoomDetails(id)
 

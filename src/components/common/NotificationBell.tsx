@@ -1,21 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Bell, BellRing, Check, CheckCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { markNotificationAsRead, markAllNotificationsAsRead, deleteNotification } from '@/app/actions/notifications'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-
-interface Notification {
-    id: string
-    type: string
-    title: string
-    message: string
-    link?: string
-    is_read: boolean
-    created_at: string
-}
+import type { Notification } from '@/types/database'
 
 export default function NotificationBell({ userId }: { userId: string }) {
     const [notifications, setNotifications] = useState<Notification[]>([])
@@ -23,7 +14,8 @@ export default function NotificationBell({ userId }: { userId: string }) {
     const [isOpen, setIsOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const pathname = usePathname()
-    const supabase = createClient()
+    const supabaseRef = useRef(createClient())
+    const supabase = supabaseRef.current
 
     // Fetch notifications
     useEffect(() => {
@@ -68,7 +60,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [userId, supabase])
+    }, [userId])
 
     const toggleOpen = () => setIsOpen(!isOpen)
 
