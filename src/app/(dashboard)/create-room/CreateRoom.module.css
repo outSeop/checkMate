@@ -97,3 +97,15 @@
     font-size: 0.875rem;
     text-align: center;
 }
+
+.dateGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+@media (max-width: 480px) {
+    .dateGrid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -41,7 +41,7 @@ export default function CreateRoomPage() {
                     />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className={styles.dateGrid}>
                     <div className={styles.field}>
                         <div style={{ display: 'flex', alignItems: 'center', height: '24px' }}>
                             <label htmlFor="startDate" className={styles.label}>시작일 *</label>

@@ -8,6 +8,8 @@ export default function DevTools() {
     const [loading, setLoading] = useState(false)
     const [isOpen, setIsOpen] = useState(false)
 
+    if (process.env.NODE_ENV !== 'development') return null
+
     const handleReset = async () => {
         if (!confirm('경고: 현재 사용자의 모든 방 데이터가 삭제되고 초기화됩니다.\n정말 진행하시겠습니까?')) return
 
