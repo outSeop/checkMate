@@ -1,10 +1,11 @@
 'use client'
 
 import Image from 'next/image'
-import { User } from 'lucide-react'
-import type { RoomParticipant } from '@/types/database'
+import { User, Flame } from 'lucide-react'
+import type { RoomParticipant, UserStreak } from '@/types/database'
 
-export default function MemberList({ participants }: { participants: RoomParticipant[] }) {
+export default function MemberList({ participants, streaks = [] }: { participants: RoomParticipant[], streaks?: UserStreak[] }) {
+    const streakMap = new Map(streaks.map(s => [s.user_id, s]))
     if (participants.length <= 1) {
         return (
             <div style={{
@@ -75,6 +76,15 @@ export default function MemberList({ participants }: { participants: RoomPartici
                             </div>
                         </div>
                     </div>
+                    {(() => {
+                        const streak = streakMap.get(p.user_id)
+                        return streak && streak.current_streak > 0 ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', color: 'hsl(25, 95%, 53%)' }}>
+                                <Flame size={14} fill="hsl(25, 95%, 53%)" />
+                                {streak.current_streak}일
+                            </div>
+                        ) : null
+                    })()}
                 </div>
             ))}
         </div>

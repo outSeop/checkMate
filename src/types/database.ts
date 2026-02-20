@@ -105,6 +105,22 @@ export interface Notification {
     created_at: string
 }
 
+export interface UserStreak {
+    user_id: string
+    room_id: string
+    current_streak: number
+    max_streak: number
+    last_activity_date: string | null
+}
+
+export interface PointEntry {
+    id: string
+    user_id: string
+    amount: number
+    reason: string | null
+    created_at: string
+}
+
 // ============================
 // Composite/View Types
 // ============================
@@ -118,6 +134,8 @@ export interface RoomData {
     participants: RoomParticipant[]
     rules: Rule[]
     fines: Fine[]
+    myStreak: UserStreak | null
+    streaks: UserStreak[]
 }
 
 export interface RoomWithDetails extends Room {

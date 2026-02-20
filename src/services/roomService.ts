@@ -29,7 +29,9 @@ export async function getRoomDetails(roomId: string): Promise<{ data: RoomData |
         { data: todayLogs },
         { data: participants },
         { data: rules },
-        { data: fines }
+        { data: fines },
+        { data: myStreak },
+        { data: streaks }
     ] = await Promise.all([
         user
             ? supabase.from('room_participants').select('*').eq('room_id', roomId).eq('user_id', user.id).single()
@@ -42,7 +44,11 @@ export async function getRoomDetails(roomId: string): Promise<{ data: RoomData |
             : Promise.resolve({ data: null }),
         supabase.from('room_participants').select('*, users(username, profile_image_url)').eq('room_id', roomId),
         supabase.from('rules').select('*').eq('room_id', roomId),
-        supabase.from('fines').select('*, users(username), rules(description)').eq('room_id', roomId)
+        supabase.from('fines').select('*, users(username), rules(description)').eq('room_id', roomId).order('created_at', { ascending: false }).limit(50),
+        user
+            ? supabase.from('user_streaks').select('*').eq('room_id', roomId).eq('user_id', user.id).maybeSingle()
+            : Promise.resolve({ data: null }),
+        supabase.from('user_streaks').select('*').eq('room_id', roomId)
     ])
 
     const todayTotalSeconds = todayLogs
@@ -58,7 +64,9 @@ export async function getRoomDetails(roomId: string): Promise<{ data: RoomData |
             todayTotalSeconds,
             participants: participants || [],
             rules: rules || [],
-            fines: fines || []
+            fines: fines || [],
+            myStreak: myStreak || null,
+            streaks: streaks || []
         },
         error: null
     }
